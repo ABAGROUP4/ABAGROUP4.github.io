@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Olympics Planner</title>
+    <style>
+        body {
+			font-family: Arial, sans-serif;
+			background-color: #f4f4f4;
+			margin: 0;
+			padding: 0;
+			background: url('https://png.pngtree.com/thumb_back/fh260/background/20200714/pngtree-modern-double-color-futuristic-neon-background-image_351866.jpg') no-repeat center center fixed;
+			background-size: cover;
+			color: #fff;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			height: 100vh;
+		}
+
+		.container {
+			max-width: 600px;
+			margin: 50px auto;
+			padding: 20px;
+			border: 1px solid #ccc;
+			border-radius: 10px;
+			background: rgba(255, 255, 255, 0.95);
+			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+		}
+		h2 { 
+			color : black;
+		
+		
+		}
+		h1 {
+			text-align: center;
+			color: 000;
+			background: linear-gradient(45deg, #ff5733, #ff904f);
+			padding: 10px;
+			border-radius: 10px;
+			margin-bottom: 30px;
+		}
+		
+		select,
+		button {
+			width: calc(100% - 22px);
+			padding: 10px;
+			margin-bottom: 15px;
+			border: 1px solid #ccc;
+			border-radius: 5px;
+			font-size: 16px;
+			color: #000;
+			background-color: #fff;
+		}
+
+		select:focus,
+		button:focus {
+			outline: none;
+			border-color: #ff5733;
+		}
+
+		button {
+			background-color: #ff5733;
+			color: #fff;
+			cursor: pointer;
+			transition: background-color 0.3s;
+		}
+
+		button:hover {
+			background-color: #ff904f;
+		}
+
+		#emissionResult {
+			margin-top: 20px;
+			font-weight: bold;
+			font-size: 20px;
+			text-align: left;
+			color: #000000;
+		}
+
+		#possibleFlights {
+			margin-top: 20px;
+			text-align: left;
+			color: #000000;
+		}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Olympics Planner</h1>
+        <div id="countryPage">
+            <h2>Select Country:</h2>
+            <select id="countrySelect" onchange="showCities()">
+                <option value="">Select Country</option>
+            </select>
+            <button onclick="showCities()">Next</button>
+        </div>
+        <div id="cityPage" style="display:none;">
+            <h2>Select Destination City:</h2>
+            <select id="citySelect" onchange="showAirports()">
+                <option value="">Select City</option>
+            </select>
+            <button onclick="showAirports()">Next</button>
+        </div>
+        <div id="airportPage" style="display:none;">
+            <h2>Select Airport:</h2>
+            <select id="airportSelect" onchange="showStopCities()">
+                <option value="">Select Airport</option>
+            </select>
+            <button onclick="showStopCities()">Next</button>
+        </div>
+        <div id="stopCityPage" style="display:none;">
+            <h2>Select Stop City:</h2>
+            <select id="stopCitySelect" onchange="showAirlines()">
+                <option value="">Select Stop City</option>
+            </select>
+            <button onclick="showAirlines()">Next</button>
+        </div>
+        <div id="airlinePage" style="display:none;">
+            <h2>Select Airline:</h2>
+            <select id="airlineSelect">
+                <option value="">Select Airline</option>
+            </select>
+            <button onclick="showFlightOptions()">Next</button>
+        </div>
+        <div id="flightOptionsPage" style="display:none;">
+            
+            <button onclick="calculateEmission()">Calculate Emission</button>
+        </div>
+        <div id="emissionResultPage" style="display:none;">
+            
+            <div id="emissionResult"></div>
+            <div id="possibleFlights"></div>
+        </div>
+    </div>
+    <script>
+        var flights = ["France : Paris : Charles de Gaulle : Oman Air : DIRECT : WY131 : N/A : 0.75",    "France : Paris : Charles de Gaulle : Oman Air : Doha : WY6525 : WY6287 : 0.77",    "France : Paris : Charles de Gaulle : Oman Air : Doha : WY6369 : WY6289 : 0.77",    "France : Paris : Charles de Gaulle : Oman Air : Doha : WY667 : WY6289 : 0.77",    "France : Paris : Charles de Gaulle : Oman Air : Doha : WY6369 : WY6287 : 0.77",    "France : Paris : Charles de Gaulle : Qatar : Doha : QR1127 : QR37 : 0.77",    "France : Paris : Charles de Gaulle : Qatar : Doha : QR1125 : QR41 : 0.77",    "France : Paris : Charles de Gaulle : Qatar : Doha : QR1149 : QR43 : 0.77",    "France : Paris : Charles de Gaulle : Qatar : Doha : QR4622 : QR39 : 0.77",    "France : Paris : Charles de Gaulle : Qatar : Doha : QR4622 : QR43 : 0.77",    "France : Paris : Charles de Gaulle : Qatar : Doha : QR1125 : QR39 : 0.77",    "France : Paris : Charles de Gaulle : Qatar : Doha : QR1123 : QR41 : 0.77",    "France : Paris : Charles de Gaulle : Qatar : Doha : QR4634 : QR39 : 0.77",    "France : Paris : Charles de Gaulle : Qatar : Doha : QR1123 : QR39 : 0.77",    "France : Paris : Charles de Gaulle : Qatar : Doha : QR4634 : QR41 : 0.77",    "France : Paris : Charles de Gaulle : Gulf Air : Bahrain : GF561 : GF19 : 0.76",    "France : Paris : Charles de Gaulle : Gulf Air : Bahrain : GF565 : GF19 : 0.76",    "France : Paris : Charles de Gaulle : Gulf Air : Bahrain : GF567 : GF19 : 0.76",    "France : Paris : Charles de Gaulle : Emirates : Dubai : EK867 : EK73 : 0.76",    "France : Paris : Charles de Gaulle : Emirates : Dubai : EK2342 : EK71 : 0.76",    "France : Paris : Charles de Gaulle : Emirates : Dubai : EK2035 : EK75 : 0.76",    "France : Paris : Charles de Gaulle : Emirates : Dubai : EK2342 : EK73 : 0.76",    "France : Paris : Charles de Gaulle : Emirates : Dubai : EK2037 : EK71 : 0.76",    "France : Paris : Charles de Gaulle : Emirates : Dubai : EK2033 : EK71 : 0.76",    "France : Paris : Charles de Gaulle : Emirates : Dubai : EK2437 : EK71 : 0.76",    "France : Paris : Charles de Gaulle : Turkish : Istanbul : TK775 : TK1821 : 0.75",    "France : Paris : Charles de Gaulle : Turkish : Istanbul : TK4613 : TK1821 : 0.75",    "France : Paris : Charles de Gaulle : Turkish : Istanbul : TK4613 : TK1833 : 0.75",    "France : Paris : Charles de Gaulle : Lufthansa : Frankfurt : LH9597 : LH1050 : 0.76",    "France : Paris : Charles de Gaulle : Etihad : Abu Dhabi : EY381 : EY31 : 0.76",    "France : Paris : Charles de Gaulle : Etihad : Abu Dhabi : EY387 : EY31 : 0.76",    "France : Paris : Charles de Gaulle : Etihad : Abu Dhabi : EY383 : EY31 : 0.76",    "UK : London : Heathrow : Oman Air : DIRECT : WY101 : N/A : 1.17",    "UK : London : Gatwick : Turkish : Istanbul : TK775 : TK1981 : 0.75",    "UK : London : Heathrow : Turkish : Istanbul : TK861 : TK1933 : 0.75",    "UK : London : Heathrow : Turkish : Istanbul : TK861 : TK1985 : 0.75",    "UK : London : Heathrow : Turkish : Istanbul : TK861 : TK1997 : 0.75",    "UK : London : Heathrow : Turkish : Istanbul : TK775 : TK1979 : 0.75",    "UK : London : Heathrow : Turkish : Istanbul : TK775 : TK1933 : 0.75",    "UK : London : Heathrow : Turkish : Istanbul : TK861 : TK1981 : 0.75",    "UK : London : Heathrow : Turkish : Istanbul : TK4613 : TK1979 : 0.75",    "UK : London : Heathrow : Turkish : Istanbul : TK4613 : TK1981 : 0.75",    "UK : London : Heathrow : Turkish : Istanbul : TK4613 : TK1965 : 0.75",    "UK : London : Heathrow : Turkish : Istanbul : TK4613 : TK1985 : 0.75",    "UK : London : Heathrow : Etihad : Abu Dhabi : EY381 : EY11 : 1.15",    "UK : London : Heathrow : Etihad : Abu Dhabi : EY383 : EY17 : 1.15",    "UK : London : Heathrow : Etihad : Abu Dhabi : EY387 : EY11 : 1.15",    "UK : London : Heathrow : Etihad : Abu Dhabi : EY381 : EY17 : 1.15",    "UK : London : Heathrow : Etihad : Abu Dhabi : EY383 : EY11 : 1.15",    "UK : London : Heathrow : Etihad : Abu Dhabi : EY387 : EY17 : 1.15",    "UK : London : Gatwick : British : Doha : BA6373 : BA4481 : 1.15",    "UK : London : Gatwick : British : Doha : BA6373 : BA7003 : 1.15",    "UK : London : Heathrow : Qatar : Doha : QR1127 : QR15 : 1.15",    "UK : London : Heathrow : Qatar : Doha : QR1127 : QR5 : 1.15",    "UK : London : Heathrow : Qatar : Doha : QR1125 : QR11 : 1.15",    "UK : London : Heathrow : Qatar : Doha : QR1125 : QR329 : 1.15",    "UK : London : Heathrow : Qatar : Doha : QR1149 : QR9709 : 1.15",    "UK : London : Heathrow : Qatar : Doha : QR1149 : QR327 : 1.15",    "UK : London : Heathrow : Qatar : Doha : QR4634 : QR5943 : 1.15",    "UK : London : Stansted : Emirates : Dubai : EK867 : EK1 : 1.15",    "Germany : Frankfurt : Frankfurt International : Oman Air : DIRECT : WY117 : N/A : 0.7",    "Germany : Frankfurt : Frankfurt International : Pegasus : Istanbul : PC871 : PC993 : 0.91",    "Germany : Frankfurt : Frankfurt International : Emirates : Dubai : EK867 : EK45 : 0.71",    "Germany : Frankfurt : Frankfurt International : Turkish : Istanbul : TK775 : TK1587 : 0.91",    "Germany : Frankfurt : Frankfurt International : Etihad : Abu Dhabi : EY387 : EY121 : 0.71",    "Germany : Frankfurt : Frankfurt International : Qatar : Doha : QR1125 : QR69 : 0.7",    "Germany : Frankfurt : Frankfurt International : Gulf Air : Bahrain : GF567 : GF17 : 0.71",    "Germany : Stuttgart : Stuttgart International : Turkish : Istanbul : TK775 : TK1701 : 0.91",    "Germany : Stuttgart : Stuttgart International : Lufthansa : Frankfurt : LH9599 : LH2152 : 0.72",    "Germany : Stuttgart : Stuttgart International : Pegasus : Istanbul : PC871 : PC969 : 0.91",    "Belgium : Brussels : Brussels National : Turkish : Istanbul : TK861 : TK861 : 0.91",    "Belgium : Brussels : Brussels National : Etihad : Abu Dhabi : EY387 : EY57 : 0.71",    "Belgium : Brussels : Brussels National : Pegasus : Istanbul : PC871 : PC923 : 0.91",    "Netherlands : Amsterdam : Amsterdam Airport Schiphol : Etihad : Abu Dhabi : EY385 : EY77 : 0.71",    "Netherlands : Amsterdam : Amsterdam Airport Schiphol : Turkish : Istanbul : TK861 : TK1959 : 0.91",    "Netherlands : Amsterdam : Amsterdam Airport Schiphol : KLM : Frankfurt : KL3896 : KL2405 : 0.75",    "Netherlands : Amsterdam : Amsterdam Airport Schiphol : Qatar : Doha : QR1127 : QR275 : 0.76",    "Netherlands : Amsterdam : Amsterdam Airport Schiphol : Emirates : Dubai : EK2342 : EK145 : 0.71",    "Switzerland : Geneva : Geneva Airport : Turkish : Istanbul : TK775 : TK1917 : 0.91",    "Switzerland : Geneva : Geneva Airport : Emirates : Dubai : EK867 : EK89 : 0.71",    "Switzerland : Geneva : Geneva Airport : Etihad : Abu Dhabi : EY381 : EY51 : 0.71",    "Switzerland : Geneva : Geneva Airport : Qatar : Doha : QR1125 : QR99 : 0.72"];
+
+
+
+        
+        var countries = [];
+        var cities = {};
+        var airports = {};
+        var airlines = [];
+
+        flights.forEach(function (flight) {
+            var parts = flight.split(" : ");
+            var country = parts[0];
+            var city = parts[1];
+            var airport = parts[2];
+            var airline = parts[3];
+            var stopCity = parts[4];
+
+            if (!countries.includes(country)) {
+                countries.push(country);
+            }
+
+            if (!cities[country]) {
+                cities[country] = [];
+            }
+
+            if (!cities[country].includes(city)) {
+                cities[country].push(city);
+            }
+
+            if (!airports[city]) {
+                airports[city] = [];
+            }
+
+            if (!airports[city].includes(airport)) {
+                airports[city].push(airport);
+            }
+
+            if (!airlines.includes(airline)) {
+                airlines.push(airline);
+            }
+        });
+
+        
+        var countrySelect = document.getElementById('countrySelect');
+        countries.forEach(function (country) {
+            var option = document.createElement('option');
+            option.text = country;
+            countrySelect.add(option);
+        });
+
+        
+        function showCities() {
+            var selectedCountry = document.getElementById('countrySelect').value;
+            if (selectedCountry) {
+                document.getElementById('countryPage').style.display = 'none';
+                document.getElementById('cityPage').style.display = 'block';
+
+                var citySelect = document.getElementById('citySelect');
+                citySelect.innerHTML = '<option value="">Select City</option>';
+                cities[selectedCountry].forEach(function (city) {
+                    var option = document.createElement('option');
+                    option.text = city;
+                    citySelect.add(option);
+                });
+            }
+        }
+
+        
+        function showAirports() {
+            var selectedCity = document.getElementById('citySelect').value;
+            if (selectedCity) {
+                document.getElementById('cityPage').style.display = 'none';
+                document.getElementById('airportPage').style.display = 'block';
+
+                var airportSelect = document.getElementById('airportSelect');
+                airportSelect.innerHTML = '<option value="">Select Airport</option>';
+                airports[selectedCity].forEach(function (airport) {
+                    var option = document.createElement('option');
+                    option.text = airport;
+                    airportSelect.add(option);
+                });
+
+                
+                document.getElementById('nextToStopCity').disabled = false;
+            }
+        }
+
+        function enableNext() {
+            
+            document.getElementById('nextToFlightOptions').disabled = false;
+        }
+
+        
+        function showStopCities() {
+    var selectedAirport = document.getElementById('airportSelect').value;
+    if (selectedAirport) {
+        document.getElementById('airportPage').style.display = 'none';
+        document.getElementById('stopCityPage').style.display = 'block'; 
+
+        var selectedCity = document.getElementById('citySelect').value;
+        var selectedCountry = countrySelect.value;
+
+        var filteredStopCities = flights.filter(function (flight) {
+            var parts = flight.split(" : ");
+            var country = parts[0];
+            var city = parts[1];
+            var airport = parts[2];
+            return country === selectedCountry &&
+                city === selectedCity &&
+                airport === selectedAirport;
+        }).map(function (flight) {
+            return flight.split(" : ")[4]; 
+        }).filter(function (value, index, self) {
+            return self.indexOf(value) === index; 
+        });
+
+        var stopCitySelect = document.getElementById('stopCitySelect');
+        stopCitySelect.innerHTML = '<option value="">Select Stop City</option>';
+        filteredStopCities.forEach(function (stopCity) {
+            var option = document.createElement('option');
+            option.text = stopCity;
+            stopCitySelect.add(option);
+        });
+
+       
+        document.getElementById('nextToFlightOptions').disabled = false;
+    }
+}
+     
+function showAirlines() {
+    var selectedAirport = document.getElementById('airportSelect').value;
+    var selectedStopCity = document.getElementById('stopCitySelect').value;
+    if (selectedAirport && selectedStopCity) {
+        document.getElementById('stopCityPage').style.display = 'none'; 
+        document.getElementById('airlinePage').style.display = 'block'; 
+
+        var selectedCity = document.getElementById('citySelect').value;
+        var selectedCountry = countrySelect.value;
+
+        var filteredAirlines = flights.filter(function (flight) {
+            var parts = flight.split(" : ");
+            var country = parts[0];
+            var city = parts[1];
+            var airport = parts[2];
+            var stopCity = parts[4]; 
+            return country === selectedCountry &&
+                city === selectedCity &&
+                airport === selectedAirport &&
+                stopCity === selectedStopCity;
+        }).map(function (flight) {
+            return flight.split(" : ")[3]; 
+        }).filter(function (value, index, self) {
+            return self.indexOf(value) === index; 
+        });
+
+        var airlineSelect = document.getElementById('airlineSelect');
+        airlineSelect.innerHTML = '<option value="">Select Airline</option>';
+        filteredAirlines.forEach(function (airline) {
+            var option = document.createElement('option');
+            option.text = airline;
+            airlineSelect.add(option);
+        });
+
+      
+        document.getElementById('nextToFlightOptions').disabled = false;
+    }
+}
+function showFlightOptions() {
+    var selectedAirline = document.getElementById('airlineSelect').value;
+    if (selectedAirline) {
+        document.getElementById('airlinePage').style.display = 'none';
+        document.getElementById('flightOptionsPage').style.display = 'block'; 
+    }
+}
+
+function round(number, precision) {
+    var factor = Math.pow(10, precision);
+    return Math.round(number * factor) / factor;
+}
+
+
+function calculateEmission() {
+    var selectedCountry = document.getElementById('countrySelect').value;
+    var selectedCity = document.getElementById('citySelect').value;
+    var selectedAirport = document.getElementById('airportSelect').value;
+    var selectedAirline = document.getElementById('airlineSelect').value;
+
+    var totalEmission = 0;
+    var possibleFlights = [];
+
+    flights.forEach(function (flight) {
+        var parts = flight.split(" : ");
+        var country = parts[0];
+        var city = parts[1];
+        var airport = parts[2];
+        var airline = parts[3];
+        var stopCity = parts[4];
+        var flightNumber = parts[5];
+        var nextFlightNumber = parts[6];
+
+        if (
+            country === selectedCountry &&
+            city === selectedCity &&
+            airport === selectedAirport &&
+            airline === selectedAirline
+        ) {
+            totalEmission = parseFloat(parts[7]); 
+            possibleFlights.push({city: city, stopCity: stopCity, flightNumber: flightNumber, nextFlightNumber: nextFlightNumber});
+        }
+    });
+
+    totalEmission = round(totalEmission * 9, 2); 
+
+    var emissionResult = document.getElementById('emissionResult');
+    var possibleFlightsDiv = document.getElementById('possibleFlights');
+
+    emissionResult.textContent = "The emission of this flight, for 9 Olympics Athletes is " + totalEmission + " kg CO2";
+    possibleFlightsDiv.innerHTML = "<h2>Possible Flights:</h2>";
+
+    var flightsText = "Possible Flights: <br>";
+    possibleFlights.forEach(function (flight, index) {
+        if (index !== 0) {
+            flightsText += "<br>";
+        }
+        flightsText += flight.city + " --> " + flight.stopCity + " (" + flight.flightNumber + ")";
+        if (flight.nextFlightNumber) {
+            flightsText += ", " + flight.stopCity + " ---> " + flight.nextFlightNumber;
+        }
+    });
+    possibleFlightsDiv.innerHTML = flightsText;
+
+    
+    document.getElementById('flightOptionsPage').style.display = 'none';
+    document.getElementById('emissionResultPage').style.display = 'block';
+}
+
+
+
+
+
+
+    </script>
+</body>
+</html>
